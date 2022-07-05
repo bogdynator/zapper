@@ -1,4 +1,4 @@
-# Router contract inspired by Uniswap v2
+# Zapper using Uniswap V2
 
 ## Usage
 
@@ -99,9 +99,9 @@ If you use VSCode, you can enjoy syntax highlighting for your Solidity code via 
 
 # Contracts
 
-CustomRouterV3 - the scope of this repo
+Zapper - the scope of this repo
 
-The rest of contracts are made only to simulate the behavior of router in tests
+The rest of contracts are made only to simulate the behavior of zapper in tests
 
 # DISCLAIMER
 
