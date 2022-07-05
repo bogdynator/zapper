@@ -1,17 +1,4 @@
-# Solidity Template
-
-My favorite setup for writing Solidity smart contracts.
-
-- [Hardhat](https://github.com/nomiclabs/hardhat): compile and run the smart contracts on a local development network
-- [TypeChain](https://github.com/ethereum-ts/TypeChain): generate TypeScript types for smart contracts
-- [Ethers](https://github.com/ethers-io/ethers.js/): renowned Ethereum library and wallet implementation
-- [Waffle](https://github.com/EthWorks/Waffle): tooling for writing comprehensive smart contract tests
-- [Solhint](https://github.com/protofire/solhint): linter
-- [Solcover](https://github.com/sc-forks/solidity-coverage): code coverage
-- [Prettier Plugin Solidity](https://github.com/prettier-solidity/prettier-plugin-solidity): code formatter
-
-This is a GitHub template, which means you can reuse it as many times as you want. You can do that by clicking the "Use this
-template" button at the top of the page.
+# Router contract inspired by Uniswap v2
 
 ## Usage
 
@@ -24,6 +11,29 @@ Then, proceed with installing dependencies:
 
 ```sh
 yarn install
+yarn add hardhat
+yarn add hardhat-docgen
+yarn add @uniswap/lib
+yarn add @uniswap/v2-core
+yarn add @uniswap/v2-periphery
+```
+
+Before running the tests make sure to change the init code from:
+
+```sh
+node_modules/@uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol at line 24
+```
+
+from
+
+```sh
+96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f
+```
+
+to
+
+```sh
+e699c2c70a1e9ca16c58b40782745b5d609738b755845b6ee18a18d21352f753
 ```
 
 ### Compile
@@ -31,7 +41,7 @@ yarn install
 Compile the smart contracts with Hardhat:
 
 ```sh
-$ yarn compile
+$ npx hardhat compile
 ```
 
 ### TypeChain
@@ -39,7 +49,7 @@ $ yarn compile
 Compile the smart contracts and generate TypeChain artifacts:
 
 ```sh
-$ yarn typechain
+$ yarn run typechain
 ```
 
 ### Lint Solidity
@@ -63,7 +73,7 @@ $ yarn lint:ts
 Run the Mocha tests:
 
 ```sh
-$ yarn test
+$ npx hardhat test
 ```
 
 ### Coverage
@@ -71,15 +81,8 @@ $ yarn test
 Generate the code coverage report:
 
 ```sh
-$ yarn coverage
-```
-
-### Report Gas
-
-See the gas usage per unit test and average gas per method call:
-
-```sh
-$ REPORT_GAS=true yarn test
+$ yarn add hardhat-coverage
+$ npx hardhat coverage --testfiles "./test"
 ```
 
 ### Clean
@@ -87,17 +90,19 @@ $ REPORT_GAS=true yarn test
 Delete the smart contract artifacts, the coverage reports and the Hardhat cache:
 
 ```sh
-$ yarn clean
-```
-
-### Deploy
-
-Deploy the contracts to Hardhat Network:
-
-```sh
-$ yarn deploy --greeting "Bonjour, le monde!"
+$ npx hardhat clean
 ```
 
 ## Syntax Highlighting
 
 If you use VSCode, you can enjoy syntax highlighting for your Solidity code via the [hardhat-vscode](https://github.com/NomicFoundation/hardhat-vscode) extension.
+
+# Contracts
+
+CustomRouterV3 - the scope of this repo
+
+The rest of contracts are made only to simulate the behavior of router in tests
+
+# DISCLAIMER
+
+These contracts are not audited, use at your own risk!
