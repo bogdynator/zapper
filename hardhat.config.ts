@@ -2,6 +2,8 @@ import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
 import { config as dotenvConfig } from "dotenv";
+import { ethers } from "ethers";
+import "hardhat-contract-sizer";
 import "hardhat-gas-reporter";
 import { HardhatUserConfig } from "hardhat/config";
 import { NetworkUserConfig } from "hardhat/types";
@@ -22,6 +24,14 @@ if (!mnemonic) {
 const infuraApiKey: string | undefined = process.env.INFURA_API_KEY;
 if (!infuraApiKey) {
   throw new Error("Please set your INFURA_API_KEY in a .env file");
+}
+const alchemyApiKey: string | undefined = process.env.ALCHEMY_API_KEY;
+if (!alchemyApiKey) {
+  throw new Error("Please set your ALCHEMY_API_KEY in a .env file");
+}
+const runStressTests: string | undefined = process.env.RUN_STRESS_TESTS;
+if (!runStressTests) {
+  throw new Error("Please set your RUN_STRESS_TESTS in a .env file");
 }
 
 const chainIds = {
@@ -45,6 +55,9 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
     case "bsc":
       jsonRpcUrl = "https://bsc-dataseed1.binance.org";
       break;
+    case "polygon-mumbai":
+      jsonRpcUrl = "https://polygon-mumbai.g.alchemy.com/v2/" + alchemyApiKey;
+      break;
     default:
       jsonRpcUrl = "https://" + chain + ".infura.io/v3/" + infuraApiKey;
   }
@@ -54,6 +67,7 @@ function getChainConfig(chain: keyof typeof chainIds): NetworkUserConfig {
       : ["0x0000000000000000000000000000000000000000"],
     chainId: chainIds[chain],
     url: jsonRpcUrl,
+    gasPrice: ethers.utils.parseUnits("60", "gwei").toNumber(),
   };
 }
 
@@ -61,29 +75,31 @@ const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   etherscan: {
     apiKey: {
-      arbitrumOne: process.env.ARBISCAN_API_KEY,
-      avalanche: process.env.SNOWTRACE_API_KEY,
-      bsc: process.env.BSCSCAN_API_KEY,
-      mainnet: process.env.ETHERSCAN_API_KEY,
-      optimisticEthereum: process.env.OPTIMISM_API_KEY,
-      polygon: process.env.POLYGONSCAN_API_KEY,
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-      rinkeby: process.env.ETHERSCAN_API_KEY,
+      arbitrumOne: process.env.ARBISCAN_API_KEY!,
+      avalanche: process.env.SNOWTRACE_API_KEY!,
+      bsc: process.env.BSCSCAN_API_KEY!,
+      mainnet: process.env.ETHERSCAN_API_KEY!,
+      optimisticEthereum: process.env.OPTIMISM_API_KEY!,
+      polygon: process.env.POLYGONSCAN_API_KEY!,
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY!,
+      rinkeby: process.env.ETHERSCAN_API_KEY!,
     },
   },
   gasReporter: {
     currency: "USD",
-    enabled: process.env.REPORT_GAS ? true : false,
+    enabled: true,
     excludeContracts: [],
     src: "./contracts",
   },
   networks: {
     hardhat: {
+      allowUnlimitedContractSize: true,
       accounts: {
         mnemonic,
       },
       chainId: chainIds.hardhat,
     },
+
     arbitrum: getChainConfig("arbitrum-mainnet"),
     avalanche: getChainConfig("avalanche"),
     bsc: getChainConfig("bsc"),
@@ -100,7 +116,17 @@ const config: HardhatUserConfig = {
     tests: "./test",
   },
   solidity: {
-    version: "0.8.13",
+    compilers: [
+      {
+        version: "0.5.16",
+      },
+      {
+        version: "0.6.6",
+      },
+      {
+        version: "0.8.13",
+      },
+    ],
     settings: {
       metadata: {
         // Not including the metadata hash
