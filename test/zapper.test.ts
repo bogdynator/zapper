@@ -88,9 +88,20 @@ describe("Router V3 tests", function () {
 
     await addFirstLiquidityTest(Token1, Token2, user, Router);
 
+    let reserveA;
+    let reserveB;
+    [reserveA, reserveB] = await UniswapV2LibraryContract.getReserves(
+      UniswapV2Factory.address,
+      Token1.address,
+      Token2.address,
+    );
+
+    let amount = ethers.utils.parseEther("1");
+    let swapAmount = await Zapper.getSwapAmount(amount, reserveA);
+
     await expect(Zapper.zapToken(Token1.address, UniswapV2Pair.address, ethers.utils.parseEther("1")))
       .to.emit(Zapper, "Zap")
-      .withArgs("469675790556572410");
+      .withArgs("469675790556572410", amount.sub(swapAmount), swapAmount);
   });
 
   it("Zap TokenA in TokenA-TokenB pool invalid pair", async () => {
@@ -138,9 +149,26 @@ describe("Router V3 tests", function () {
     await addFirstLiquidityTest(Token1, Token2, user, Router);
     await addFirstLiquidityTest(Token1, Token3, user, Router);
 
+    let amountIn = ethers.utils.parseEther("1");
+    let amountOutMin = ethers.utils.parseEther("0");
+    let path = [Token1.address, Token2.address];
+    let amounts: BigNumber[] = await UniswapV2LibraryContract.getAmountsOut(UniswapV2Factory.address, amountIn, path);
+
+    let newTotalAMount = amounts[1];
+
+    let reserveA;
+    let reserveB;
+    [reserveA, reserveB] = await UniswapV2LibraryContract.getReserves(
+      UniswapV2Factory.address,
+      Token2.address,
+      Token3.address,
+    );
+
+    let swapAmount = await Zapper.getSwapAmount(newTotalAMount, reserveA);
+
     await expect(Zapper.zapTokenForTokens(Token1.address, UniswapV2Pair.address, ethers.utils.parseEther("1")))
       .to.emit(Zapper, "ZapTokenToTokens")
-      .withArgs("447375388541372102");
+      .withArgs("468618102375526886", newTotalAMount.sub(swapAmount), swapAmount);
   });
 
   it("Zap TokenA in TokenB-TokenC invalid pool", async () => {
@@ -165,9 +193,20 @@ describe("Router V3 tests", function () {
 
     await addFirstLiquidityETHTest(Token1, user, Router);
 
-    await expect(Zapper.zapEth(UniswapV2Pair.address, { value: ethers.utils.parseEther("1") }))
+    let reserveA;
+    let reserveB;
+    [reserveA, reserveB] = await UniswapV2LibraryContract.getReserves(
+      UniswapV2Factory.address,
+      Token1.address,
+      WETH.address,
+    );
+
+    let amount = ethers.utils.parseEther("1");
+    let swapAmount = await Zapper.getSwapAmount(amount, reserveB);
+
+    await expect(Zapper.zapEth(UniswapV2Pair.address, { value: amount }))
       .to.emit(Zapper, "ZapETH")
-      .withArgs("493159580084401031");
+      .withArgs("493159580084401031", amount.sub(swapAmount), swapAmount);
   });
 
   it("Zap ETH in TokenA-WETH invalid pool", async () => {
@@ -210,9 +249,26 @@ describe("Router V3 tests", function () {
     await addFirstLiquidityETHTest(Token2, user, Router);
     await addFirstLiquidityETHTest(Token3, user, Router);
 
+    let amountIn = ethers.utils.parseEther("1");
+    let amountOutMin = ethers.utils.parseEther("0");
+    let path = [WETH.address, Token2.address];
+    let amounts: BigNumber[] = await UniswapV2LibraryContract.getAmountsOut(UniswapV2Factory.address, amountIn, path);
+
+    let newTotalAMount = amounts[1];
+
+    let reserveA;
+    let reserveB;
+    [reserveA, reserveB] = await UniswapV2LibraryContract.getReserves(
+      UniswapV2Factory.address,
+      Token2.address,
+      Token3.address,
+    );
+
+    let swapAmount = await Zapper.getSwapAmount(newTotalAMount, reserveA);
+
     await expect(Zapper.zapEthToTokens(UniswapV2Pair.address, { value: ethers.utils.parseEther("1") }))
       .to.emit(Zapper, "ZapETHToTokens")
-      .withArgs("447375388541372102");
+      .withArgs("468618102375526886", newTotalAMount.sub(swapAmount), swapAmount);
   });
 
   it("Zap ETH in TokenB-TokenC invalid pool", async () => {

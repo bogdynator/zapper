@@ -24,6 +24,7 @@ import type { OnEvent, PromiseOrValue, TypedEvent, TypedEventFilter, TypedListen
 export interface ZapperInterface extends utils.Interface {
   functions: {
     "WETH()": FunctionFragment;
+    "getSwapAmount(uint256,uint256)": FunctionFragment;
     "router()": FunctionFragment;
     "zapEth(address)": FunctionFragment;
     "zapEthToTokens(address)": FunctionFragment;
@@ -32,10 +33,21 @@ export interface ZapperInterface extends utils.Interface {
   };
 
   getFunction(
-    nameOrSignatureOrTopic: "WETH" | "router" | "zapEth" | "zapEthToTokens" | "zapToken" | "zapTokenForTokens",
+    nameOrSignatureOrTopic:
+      | "WETH"
+      | "getSwapAmount"
+      | "router"
+      | "zapEth"
+      | "zapEthToTokens"
+      | "zapToken"
+      | "zapTokenForTokens",
   ): FunctionFragment;
 
   encodeFunctionData(functionFragment: "WETH", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "getSwapAmount",
+    values: [PromiseOrValue<BigNumberish>, PromiseOrValue<BigNumberish>],
+  ): string;
   encodeFunctionData(functionFragment: "router", values?: undefined): string;
   encodeFunctionData(functionFragment: "zapEth", values: [PromiseOrValue<string>]): string;
   encodeFunctionData(functionFragment: "zapEthToTokens", values: [PromiseOrValue<string>]): string;
@@ -49,6 +61,7 @@ export interface ZapperInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "WETH", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "getSwapAmount", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "router", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "zapEth", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "zapEthToTokens", data: BytesLike): Result;
@@ -56,10 +69,10 @@ export interface ZapperInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "zapTokenForTokens", data: BytesLike): Result;
 
   events: {
-    "Zap(uint256)": EventFragment;
-    "ZapETH(uint256)": EventFragment;
-    "ZapETHToTokens(uint256)": EventFragment;
-    "ZapTokenToTokens(uint256)": EventFragment;
+    "Zap(uint256,uint256,uint256)": EventFragment;
+    "ZapETH(uint256,uint256,uint256)": EventFragment;
+    "ZapETHToTokens(uint256,uint256,uint256)": EventFragment;
+    "ZapTokenToTokens(uint256,uint256,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Zap"): EventFragment;
@@ -70,29 +83,37 @@ export interface ZapperInterface extends utils.Interface {
 
 export interface ZapEventObject {
   arg0: BigNumber;
+  arg1: BigNumber;
+  arg2: BigNumber;
 }
-export type ZapEvent = TypedEvent<[BigNumber], ZapEventObject>;
+export type ZapEvent = TypedEvent<[BigNumber, BigNumber, BigNumber], ZapEventObject>;
 
 export type ZapEventFilter = TypedEventFilter<ZapEvent>;
 
 export interface ZapETHEventObject {
   arg0: BigNumber;
+  arg1: BigNumber;
+  arg2: BigNumber;
 }
-export type ZapETHEvent = TypedEvent<[BigNumber], ZapETHEventObject>;
+export type ZapETHEvent = TypedEvent<[BigNumber, BigNumber, BigNumber], ZapETHEventObject>;
 
 export type ZapETHEventFilter = TypedEventFilter<ZapETHEvent>;
 
 export interface ZapETHToTokensEventObject {
   arg0: BigNumber;
+  arg1: BigNumber;
+  arg2: BigNumber;
 }
-export type ZapETHToTokensEvent = TypedEvent<[BigNumber], ZapETHToTokensEventObject>;
+export type ZapETHToTokensEvent = TypedEvent<[BigNumber, BigNumber, BigNumber], ZapETHToTokensEventObject>;
 
 export type ZapETHToTokensEventFilter = TypedEventFilter<ZapETHToTokensEvent>;
 
 export interface ZapTokenToTokensEventObject {
   arg0: BigNumber;
+  arg1: BigNumber;
+  arg2: BigNumber;
 }
-export type ZapTokenToTokensEvent = TypedEvent<[BigNumber], ZapTokenToTokensEventObject>;
+export type ZapTokenToTokensEvent = TypedEvent<[BigNumber, BigNumber, BigNumber], ZapTokenToTokensEventObject>;
 
 export type ZapTokenToTokensEventFilter = TypedEventFilter<ZapTokenToTokensEvent>;
 
@@ -120,6 +141,12 @@ export interface Zapper extends BaseContract {
 
   functions: {
     WETH(overrides?: CallOverrides): Promise<[string]>;
+
+    getSwapAmount(
+      amount: PromiseOrValue<BigNumberish>,
+      reserve: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides,
+    ): Promise<[BigNumber]>;
 
     router(overrides?: CallOverrides): Promise<[string]>;
 
@@ -150,6 +177,12 @@ export interface Zapper extends BaseContract {
 
   WETH(overrides?: CallOverrides): Promise<string>;
 
+  getSwapAmount(
+    amount: PromiseOrValue<BigNumberish>,
+    reserve: PromiseOrValue<BigNumberish>,
+    overrides?: CallOverrides,
+  ): Promise<BigNumber>;
+
   router(overrides?: CallOverrides): Promise<string>;
 
   zapEth(
@@ -179,6 +212,12 @@ export interface Zapper extends BaseContract {
   callStatic: {
     WETH(overrides?: CallOverrides): Promise<string>;
 
+    getSwapAmount(
+      amount: PromiseOrValue<BigNumberish>,
+      reserve: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
+
     router(overrides?: CallOverrides): Promise<string>;
 
     zapEth(pair: PromiseOrValue<string>, overrides?: CallOverrides): Promise<BigNumber>;
@@ -201,21 +240,27 @@ export interface Zapper extends BaseContract {
   };
 
   filters: {
-    "Zap(uint256)"(arg0?: null): ZapEventFilter;
-    Zap(arg0?: null): ZapEventFilter;
+    "Zap(uint256,uint256,uint256)"(arg0?: null, arg1?: null, arg2?: null): ZapEventFilter;
+    Zap(arg0?: null, arg1?: null, arg2?: null): ZapEventFilter;
 
-    "ZapETH(uint256)"(arg0?: null): ZapETHEventFilter;
-    ZapETH(arg0?: null): ZapETHEventFilter;
+    "ZapETH(uint256,uint256,uint256)"(arg0?: null, arg1?: null, arg2?: null): ZapETHEventFilter;
+    ZapETH(arg0?: null, arg1?: null, arg2?: null): ZapETHEventFilter;
 
-    "ZapETHToTokens(uint256)"(arg0?: null): ZapETHToTokensEventFilter;
-    ZapETHToTokens(arg0?: null): ZapETHToTokensEventFilter;
+    "ZapETHToTokens(uint256,uint256,uint256)"(arg0?: null, arg1?: null, arg2?: null): ZapETHToTokensEventFilter;
+    ZapETHToTokens(arg0?: null, arg1?: null, arg2?: null): ZapETHToTokensEventFilter;
 
-    "ZapTokenToTokens(uint256)"(arg0?: null): ZapTokenToTokensEventFilter;
-    ZapTokenToTokens(arg0?: null): ZapTokenToTokensEventFilter;
+    "ZapTokenToTokens(uint256,uint256,uint256)"(arg0?: null, arg1?: null, arg2?: null): ZapTokenToTokensEventFilter;
+    ZapTokenToTokens(arg0?: null, arg1?: null, arg2?: null): ZapTokenToTokensEventFilter;
   };
 
   estimateGas: {
     WETH(overrides?: CallOverrides): Promise<BigNumber>;
+
+    getSwapAmount(
+      amount: PromiseOrValue<BigNumberish>,
+      reserve: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides,
+    ): Promise<BigNumber>;
 
     router(overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -246,6 +291,12 @@ export interface Zapper extends BaseContract {
 
   populateTransaction: {
     WETH(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    getSwapAmount(
+      amount: PromiseOrValue<BigNumberish>,
+      reserve: PromiseOrValue<BigNumberish>,
+      overrides?: CallOverrides,
+    ): Promise<PopulatedTransaction>;
 
     router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 

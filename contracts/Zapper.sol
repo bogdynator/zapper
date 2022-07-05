@@ -25,13 +25,13 @@ contract Zapper {
     CustomRouterV3 public router;
 
     /// @notice Event triggered on zapping into a pool where input token is part of
-    event Zap(uint256);
+    event Zap(uint256, uint256, uint256);
     /// @notice Event triggered on zapping into a pool where input token is not part of the pool
-    event ZapTokenToTokens(uint256);
+    event ZapTokenToTokens(uint256, uint256, uint256);
     /// @notice Event triggered on zapping into a pool where WETH is part of
-    event ZapETH(uint256);
+    event ZapETH(uint256, uint256, uint256);
     /// @notice Event triggered on zapping into a pool where WETH is not part of the pool
-    event ZapETHToTokens(uint256);
+    event ZapETHToTokens(uint256, uint256, uint256);
 
     constructor(address _WETH, CustomRouterV3 _router) public {
         WETH = _WETH;
@@ -77,7 +77,7 @@ contract Zapper {
             address(this),
             block.timestamp
         ); /// @notice swap amount and send to this contract the new tokens
-        uint256 token0Bought = amount - amounts[1];
+        uint256 token0Bought = amount - amountToSwap;
         uint256 token1Bought = amounts[1];
 
         IERC20(swapToken).approve(address(router), token1Bought);
@@ -93,7 +93,7 @@ contract Zapper {
             block.timestamp
         );
 
-        emit Zap(liq);
+        emit Zap(liq, token0Bought, amountToSwap);
 
         return liq;
     }
@@ -145,8 +145,8 @@ contract Zapper {
             block.timestamp
         ); /// @notice swap amount and send to this contract the new tokens
 
-        uint256 token0Amount = amountsToken1[1];
-        uint256 token1Bought = tokenAmount - amountsToken1[1];
+        uint256 token0Amount = tokenAmount - amountToSwap;
+        uint256 token1Bought = amountsToken1[1];
 
         (, , uint256 liq) = router.addLiquidity(
             token0,
@@ -159,7 +159,7 @@ contract Zapper {
             block.timestamp
         );
 
-        emit ZapTokenToTokens(liq);
+        emit ZapTokenToTokens(liq, token0Amount, amountToSwap);
         return liq;
     }
 
@@ -201,7 +201,7 @@ contract Zapper {
             address(this),
             block.timestamp
         ); /// @notice swap amount and send to this contract the new tokens
-        uint256 token0Bought = msg.value - amounts[1];
+        uint256 token0Bought = msg.value - amountToSwap;
         uint256 token1Bought = amounts[1];
 
         IERC20(swapToken).approve(address(router), token1Bought);
@@ -217,7 +217,7 @@ contract Zapper {
             block.timestamp
         );
 
-        emit ZapETH(liq);
+        emit ZapETH(liq, token0Bought, amountToSwap);
 
         return liq;
     }
@@ -267,8 +267,8 @@ contract Zapper {
             block.timestamp
         ); /// @notice swap amount and send to this contract the new tokens
 
-        uint256 token0Amount = amountsToken1[1];
-        uint256 token1Bought = tokenAmount - amountsToken1[1];
+        uint256 token0Amount = tokenAmount - amountToSwap;
+        uint256 token1Bought = amountsToken1[1];
 
         (, , uint256 liq) = router.addLiquidity(
             token0,
@@ -281,11 +281,11 @@ contract Zapper {
             block.timestamp
         );
 
-        emit ZapETHToTokens(liq);
+        emit ZapETHToTokens(liq, token0Amount, amountToSwap);
         return liq;
     }
 
-    function getSwapAmount(uint256 amount, uint256 reserve) internal pure returns (uint256) {
+    function getSwapAmount(uint256 amount, uint256 reserve) public pure returns (uint256) {
         return sqrt(reserve.mul(amount.mul(3988000) + reserve.mul(3988009))).sub(reserve.mul(1997)) / 1994;
     }
 
